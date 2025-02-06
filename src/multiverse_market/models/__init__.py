@@ -1,6 +1,7 @@
 from .entities import Base, User, Item, Transaction, Universe
 from .schemas import UserSchema, ItemSchema, TransactionSchema, UniverseSchema
 from .requests import CurrencyExchange, ItemPurchase
+from .responses import CurrencyExchangeResponse
 
 __all__ = [
     # Entities
@@ -18,5 +19,8 @@ __all__ = [
     
     # Request Models
     'CurrencyExchange',
-    'ItemPurchase'
+    'ItemPurchase',
+    
+    # Response Models
+    'CurrencyExchangeResponse'
 ] 
