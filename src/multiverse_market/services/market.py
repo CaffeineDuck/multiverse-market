@@ -8,6 +8,7 @@ from ..repositories import UserRepository, ItemRepository, TransactionRepository
 from ..models.entities import Transaction
 from ..models.schemas import UserSchema, ItemSchema, TransactionSchema, UniverseSchema
 from ..models.requests import CurrencyExchange, ItemPurchase
+from ..models import CurrencyExchangeResponse
 from ..exceptions import (
     UserNotFoundException, ItemNotFoundException, UniverseNotFoundException,
     InsufficientBalanceException, InsufficientStockException
@@ -51,7 +52,7 @@ class MarketService(MarketBackend):
         await self._cache.setex(cache_key, 3600, str(rate))
         return rate
 
-    async def exchange_currency(self, exchange: CurrencyExchange) -> Decimal:
+    async def exchange_currency(self, exchange: CurrencyExchange) -> CurrencyExchangeResponse:
         user = await self._users.get(exchange.user_id)
         if not user:
             raise UserNotFoundException()
@@ -67,7 +68,12 @@ class MarketService(MarketBackend):
         new_balance = float(Decimal(str(user.balance)) - Decimal(str(exchange.amount)) + converted_amount)
         await self._users.update_balance(user.id, new_balance)
         
-        return converted_amount
+        return CurrencyExchangeResponse(
+            converted_amount=float(converted_amount),
+            from_universe_id=exchange.from_universe_id,
+            to_universe_id=exchange.to_universe_id,
+            exchange_rate=float(exchange_rate)
+        )
 
     async def buy_item(self, purchase: ItemPurchase) -> TransactionSchema:
         cache_key = f"item:{purchase.item_id}"
