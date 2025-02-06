@@ -1,0 +1,77 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP__PORT:-8000}:8000"
+    volumes:
+      - ./src:/app/src
+      - ./migrations:/app/migrations
+      - ./alembic.ini:/app/alembic.ini
+    env_file:
+      - env/.env
+    environment:
+      - APP__HOST=${APP__HOST:-0.0.0.0}
+      - APP__PORT=${APP__PORT:-8000}
+      - APP__DEBUG=${APP__DEBUG:-false}
+      - APP__LOG_LEVEL=${APP__LOG_LEVEL:-info}
+      - APP__ENVIRONMENT=${APP__ENVIRONMENT:-development}
+      - DB__HOST=db
+      - DB__PORT=5432
+      - DB__USER=${DB__USER:-postgres}
+      - DB__PASSWORD=${DB__PASSWORD:-postgres}
+      - DB__NAME=${DB__NAME:-multiverse_market}
+      - DB__SSL=${DB__SSL:-false}
+      - REDIS__HOST=redis
+      - REDIS__PORT=6379
+      - REDIS__DB=${REDIS__DB:-0}
+      - REDIS__PASSWORD=${REDIS__PASSWORD:-}
+      - REDIS__SSL=${REDIS__SSL:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    command: uvicorn multiverse_market.main:app --host 0.0.0.0 --port 8000 --reload
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "${DB__PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${DB__USER:-postgres}
+      - POSTGRES_PASSWORD=${DB__PASSWORD:-postgres}
+      - POSTGRES_DB=${DB__NAME:-multiverse_market}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB__USER:-postgres} -d ${DB__NAME:-multiverse_market}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS__PORT:-6379}:6379"
+    command: redis-server
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  redis_data: 
