@@ -38,11 +38,30 @@ make help
 ```
 
 Common commands:
-- `make ps` - List running containers
-- `make logs` - View container logs
-- `make shell` - Open a shell in the app container
-- `make restart` - Restart all containers
-- `make clean` - Stop containers and clean up
+- Docker management:
+  - `make build` - Build containers
+  - `make up` - Start containers
+  - `make down` - Stop containers
+  - `make ps` - List containers
+  - `make logs` - View container logs
+  - `make restart` - Restart all containers (preserves data)
+
+- Development commands:
+  - Local:
+    - `make test` - Run tests locally
+    - `make migrate` - Run migrations locally
+    - `make seed` - Seed database locally
+    - `make shell` - Open a local shell
+  - Docker:
+    - `make docker/test` - Run tests in Docker
+    - `make docker/migrate` - Run migrations in Docker
+    - `make docker/seed` - Seed database in Docker
+    - `make docker/shell` - Open shell in Docker container
+
+- Cleanup:
+  - `make clean` - Stop containers and clean cache files (preserves data)
+  - `make clean-volumes` - Remove all volumes (WARNING: destroys data)
+  - `make clean-all` - Full cleanup including volumes (WARNING: destroys all data)
 
 ## API Documentation
 
