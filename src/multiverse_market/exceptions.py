@@ -5,6 +5,9 @@ class MultiverseMarketException(HTTPException):
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
     detail: str = "An unexpected error occurred"
 
+    def __init__(self, detail: str | None = None) -> None:
+        super().__init__(status_code=self.status_code, detail=detail or self.detail)
+
 class NotFoundException(MultiverseMarketException):
     """Resource not found."""
     status_code = status.HTTP_404_NOT_FOUND

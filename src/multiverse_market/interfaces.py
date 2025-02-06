@@ -2,7 +2,7 @@ from decimal import Decimal
 import typing as ty
 from .models import (
     UserSchema, ItemSchema, UniverseSchema, TransactionSchema,
-    CurrencyExchange, ItemPurchase
+    CurrencyExchange, ItemPurchase, CurrencyExchangeResponse
 )
 
 class CacheBackend(ty.Protocol):
@@ -55,7 +55,7 @@ class DatabaseBackend(ty.Protocol):
 
 class MarketBackend(ty.Protocol):
     """Protocol for market operations."""
-    async def exchange_currency(self, exchange: CurrencyExchange) -> Decimal:
+    async def exchange_currency(self, exchange: CurrencyExchange) -> CurrencyExchangeResponse:
         """Exchange currency between universes."""
         ...
     

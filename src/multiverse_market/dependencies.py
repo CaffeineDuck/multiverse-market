@@ -1,7 +1,8 @@
 from typing import AsyncGenerator, Annotated
-from redis.asyncio import Redis
+from redis.asyncio import Redis, ConnectionPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from fastapi import Depends
+import asyncio
 from .config import settings
 from .services import MarketService, RedisCache
 from .interfaces import CacheBackend, MarketBackend
@@ -24,12 +25,15 @@ async_session = async_sessionmaker(
     expire_on_commit=False
 )
 
-# Redis setup
-redis = Redis.from_url(
+# Redis setup with connection pooling
+redis_pool = ConnectionPool.from_url(
     settings.REDIS_URL,
     encoding="utf-8",
-    decode_responses=True
+    decode_responses=True,
+    max_connections=10
 )
+
+redis = Redis(connection_pool=redis_pool)
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Get database session."""
@@ -40,12 +44,19 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 async def get_redis() -> AsyncGenerator[Redis, None]:
-    """Get Redis connection."""
-    try:
-        await redis.ping()
-        yield redis
-    finally:
-        await redis.close()
+    """Get Redis connection with basic retry logic."""
+    for attempt in range(3):  # Try 3 times
+        try:
+            await redis.ping()
+            try:
+                yield redis
+            finally:
+                await redis.close()
+            return
+        except Exception as e:
+            if attempt == 2:  # Last attempt
+                raise  # Re-raise the exception if all retries failed
+            await asyncio.sleep(0.1 * (attempt + 1))  # Exponential backoff
 
 async def get_cache_backend(redis: Redis = Depends(get_redis)) -> CacheBackend:
     """Get cache backend."""

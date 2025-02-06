@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from typing import List
 from .models import (
     UserSchema, ItemSchema, TransactionSchema, UniverseSchema,
-    CurrencyExchange, ItemPurchase
+    CurrencyExchange, ItemPurchase, CurrencyExchangeResponse
 )
 from .dependencies import MarketDependency
 
@@ -23,10 +23,10 @@ async def list_items(market: MarketDependency, universe_id: int | None = None):
     """List available items, optionally filtered by universe."""
     return await market.list_items(universe_id)
 
-@router.post("/exchange", response_model=float)
+@router.post("/exchange", response_model=CurrencyExchangeResponse)
 async def exchange_currency(exchange: CurrencyExchange, market: MarketDependency):
     """Exchange currency between universes."""
-    return float(await market.exchange_currency(exchange))
+    return await market.exchange_currency(exchange)
 
 @router.post("/buy", response_model=TransactionSchema)
 async def buy_item(purchase: ItemPurchase, market: MarketDependency):
