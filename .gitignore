@@ -23,6 +23,7 @@ wheels/
 # Virtual Environment
 .env
 .venv
+env/
 venv/
 ENV/
 
@@ -33,11 +34,13 @@ ENV/
 *.swo
 .DS_Store
 
-# Project specific
-env/.env
-*.log
+# Testing
 .coverage
 htmlcov/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
+# Project specific
+env/.env
+*.log
