@@ -72,6 +72,40 @@ services:
       retries: 5
       start_period: 5s
 
+  locust-master:
+    build:
+      context: .
+      dockerfile: tests/load/Dockerfile
+    ports:
+      - "8089:8089"
+    environment:
+      - API_URL=http://app:8000
+    volumes:
+      - ./tests/load:/app/tests/load
+    command: locust -f /app/tests/load/locustfile.py --master --web-port=8089 --host=${API_URL:-http://app:8000}
+    profiles:
+      - test-load
+    depends_on:
+      app:
+        condition: service_healthy
+
+  locust-worker:
+    build:
+      context: .
+      dockerfile: tests/load/Dockerfile
+    environment:
+      - API_URL=http://app:8000
+    volumes:
+      - ./tests/load:/app/tests/load
+    command: locust -f /app/tests/load/locustfile.py --worker --master-host=locust-master --host=${API_URL:-http://app:8000}
+    profiles:
+      - test-load
+    depends_on:
+      locust-master:
+        condition: service_started
+    deploy:
+      replicas: 2
+
 volumes:
   postgres_data:
   redis_data: 
