@@ -10,47 +10,7 @@ A marketplace system for trading across multiple parallel universes. Users can b
 - Redis caching for improved performance
 - PostgreSQL database for persistent storage
 
-## Prerequisites
-
-- Python 3.8+
-- PostgreSQL
-- Redis
-- Docker and Docker Compose (for containerized setup)
-
-## Setup
-
-### Local Development
-
-1. Clone the repository
-2. Create a virtual environment and install dependencies:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -e .
-```
-
-3. Set up environment variables:
-```bash
-cp env/.env.template env/.env
-# Edit env/.env with your configuration
-```
-
-4. Run database migrations:
-```bash
-alembic upgrade head
-```
-
-5. Seed the database with test data:
-```bash
-python -m multiverse_market.cli seed
-```
-
-6. Run the application:
-```bash
-uvicorn multiverse_market.main:app --reload
-```
-
-### Docker Setup
+## Setup with Docker
 
 1. Clone the repository
 
@@ -62,14 +22,27 @@ cp env/.env.template env/.env
 
 3. Build and start the containers:
 ```bash
-docker compose up -d
+make build  # Build the containers
+make up     # Start the containers
 ```
 
 4. Run migrations and seed data:
 ```bash
-docker compose exec app alembic upgrade head
-docker compose exec app python -m multiverse_market.cli seed
+make migrate  # Run database migrations
+make seed     # Seed test data
 ```
+
+You can view all available commands with:
+```bash
+make help
+```
+
+Common commands:
+- `make ps` - List running containers
+- `make logs` - View container logs
+- `make shell` - Open a shell in the app container
+- `make restart` - Restart all containers
+- `make clean` - Stop containers and clean up
 
 ## API Documentation
 
@@ -77,21 +50,13 @@ Once the application is running, you can access:
 - Swagger UI documentation at: http://localhost:8000/docs
 - ReDoc documentation at: http://localhost:8000/redoc
 
-## API Endpoints
-
-- `POST /api/v1/exchange`: Convert currency between universes
-- `POST /api/v1/buy`: Purchase items from other universes
-- `GET /api/v1/trades/{user_id}`: View user's trade history
-- `GET /api/v1/users/{user_id}`: Get user details
-- `GET /api/v1/items`: List available items (optional universe_id filter)
-- `GET /api/v1/universes`: List all universes
+For detailed API endpoints and schema, please refer to the documentation above.
 
 ## Development
 
 ### Running Tests
 ```bash
-pip install ".[test]"
-pytest
+make test
 ```
 
 ### Code Quality
@@ -101,18 +66,18 @@ The project uses ruff for linting and formatting. Configuration can be found in 
 
 To create a new migration:
 ```bash
-alembic revision --autogenerate -m "description of changes"
+docker compose exec app alembic revision --autogenerate -m "description of changes"
 ```
 
 To apply migrations:
 ```bash
-alembic upgrade head
+make migrate
 ```
 
 To rollback migrations:
 ```bash
-alembic downgrade -1  # Rollback one migration
-alembic downgrade base  # Rollback all migrations
+docker compose exec app alembic downgrade -1  # Rollback one migration
+docker compose exec app alembic downgrade base  # Rollback all migrations
 ```
 
 ## Database Schema
