@@ -28,6 +28,10 @@ test = [
     "locust>=2.24.0",
     "httpx>=0.27.0",
 ]
+dev = [
+    "pyright>=1.1.350",
+    "ruff>=0.2.0",
+]
 
 [build-system]
 requires = ["hatchling"]
