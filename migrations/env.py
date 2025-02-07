@@ -1,15 +1,14 @@
-from logging.config import fileConfig
 import asyncio
 import logging
+from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config, create_async_engine
 
-from alembic import context
-
-from multiverse_market.models import Base
 from multiverse_market.config import settings
+from multiverse_market.models import Base
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +29,7 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

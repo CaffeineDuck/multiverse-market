@@ -1,4 +1,4 @@
-from .market import MarketService
 from .cache import RedisCache
+from .market import MarketService
 
-__all__ = ['MarketService', 'RedisCache'] 
+__all__ = ["MarketService", "RedisCache"]

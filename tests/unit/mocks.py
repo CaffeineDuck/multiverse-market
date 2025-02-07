@@ -1,14 +1,21 @@
-from typing import Dict, List, Optional, Sequence
+from collections.abc import Sequence
 from datetime import datetime
+from decimal import Decimal
 
-from multiverse_market.repositories import (
-    UserRepository, ItemRepository, UniverseRepository, TransactionRepository
+from multiverse_market.exceptions import (
+    ItemNotFoundException,
+    UniverseNotFoundException,
+    UserNotFoundException,
 )
 from multiverse_market.interfaces import CacheBackend
-from multiverse_market.models.entities import User, Item, Universe, Transaction
-from multiverse_market.exceptions import (
-    UserNotFoundException, ItemNotFoundException, UniverseNotFoundException
+from multiverse_market.models.entities import Item, Transaction, Universe, User
+from multiverse_market.repositories import (
+    ItemRepository,
+    TransactionRepository,
+    UniverseRepository,
+    UserRepository,
 )
+
 
 class MockSession:
     async def commit(self) -> None:
@@ -17,28 +24,27 @@ class MockSession:
     async def rollback(self) -> None:
         pass
 
+
 class InMemoryCacheService(CacheBackend):
     def __init__(self):
-        self._cache: Dict[str, str] = {}
-        self._expiry: Dict[str, float] = {}
+        self._cache: dict[str, str] = {}
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         return self._cache.get(key)
 
-    async def setex(self, key: str, expires: int, value: str) -> None:
+    async def setex(self, key: str, ttl: int, value: str) -> None:
         self._cache[key] = value
-        self._expiry[key] = expires
 
     async def delete(self, key: str) -> None:
         self._cache.pop(key, None)
-        self._expiry.pop(key, None)
+
 
 class MockUserRepository(UserRepository):
     def __init__(self):
-        self._users: Dict[int, User] = {}
+        self._users: dict[int, User] = {}
         self._session = MockSession()
 
-    async def get(self, id: int) -> Optional[User]:
+    async def get(self, id: int) -> User | None:
         return self._users.get(id)
 
     async def list(self, **filters) -> Sequence[User]:
@@ -49,23 +55,23 @@ class MockUserRepository(UserRepository):
         if not user:
             raise UserNotFoundException()
         self._users[user_id] = User(
-            id=user.id,
-            username=user.username,
-            universe_id=user.universe_id,
-            balance=new_balance
+            id=user.id, username=user.username, universe_id=user.universe_id, balance=new_balance
         )
+
 
 class MockItemRepository(ItemRepository):
     def __init__(self):
-        self._items: Dict[int, Item] = {}
+        self._items: dict[int, Item] = {}
         self._session = MockSession()
 
-    async def get(self, id: int) -> Optional[Item]:
+    async def get(self, id: int) -> Item | None:
         return self._items.get(id)
 
     async def list(self, **filters) -> Sequence[Item]:
-        if 'universe_id' in filters:
-            return [item for item in self._items.values() if item.universe_id == filters['universe_id']]
+        if "universe_id" in filters:
+            return [
+                item for item in self._items.values() if item.universe_id == filters["universe_id"]
+            ]
         return list(self._items.values())
 
     async def update_stock(self, item_id: int, new_stock: int) -> None:
@@ -77,26 +83,28 @@ class MockItemRepository(ItemRepository):
             name=item.name,
             universe_id=item.universe_id,
             price=item.price,
-            stock=new_stock
+            stock=new_stock,
         )
+
 
 class MockUniverseRepository(UniverseRepository):
     def __init__(self):
-        self._universes: Dict[int, Universe] = {}
+        self._universes: dict[int, Universe] = {}
         self._session = MockSession()
 
-    async def get(self, id: int) -> Optional[Universe]:
+    async def get(self, id: int) -> Universe | None:
         return self._universes.get(id)
 
     async def list(self, **filters) -> Sequence[Universe]:
         return list(self._universes.values())
 
+
 class MockTransactionRepository(TransactionRepository):
     def __init__(self):
-        self._transactions: List[Transaction] = []
+        self._transactions: list[Transaction] = []
         self._session = MockSession()
 
-    async def get(self, id: int) -> Optional[Transaction]:
+    async def get(self, id: int) -> Transaction | None:
         for transaction in self._transactions:
             if transaction.id == id:
                 return transaction
@@ -112,4 +120,4 @@ class MockTransactionRepository(TransactionRepository):
         if not isinstance(entity, Transaction):
             raise ValueError("Can only add Transaction entities")
         self._transactions.append(entity)
-        return entity 
+        return entity

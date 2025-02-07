@@ -1,17 +1,21 @@
-from typing import Protocol, TypeVar, Generic, Optional, Sequence
+import logging
+from collections.abc import Sequence
+from typing import Generic, Optional, Protocol, TypeVar
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-import logging
 
 from ..models.entities import Base
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
+
 class Repository(Protocol[T]):
     """Base repository protocol."""
-    async def get(self, id: int) -> Optional[T]:
+
+    async def get(self, id: int) -> T | None:
         """Get entity by ID."""
         ...
 
@@ -31,19 +35,18 @@ class Repository(Protocol[T]):
         """Delete entity by ID."""
         ...
 
+
 class SQLAlchemyRepository(Generic[T]):
     """Base SQLAlchemy repository implementation."""
-    
+
     def __init__(self, session: AsyncSession, model: type[T]):
         logger.debug(f"Initializing {self.__class__.__name__}")
         self._session = session
         self._model = model
 
-    async def get(self, id: int) -> Optional[T]:
+    async def get(self, id: int) -> T | None:
         logger.debug(f"Getting {self._model.__name__} with id {id}")
-        result = await self._session.execute(
-            select(self._model).where(self._model.id == id)
-        )
+        result = await self._session.execute(select(self._model).where(self._model.id == id))
         entity = result.scalar_one_or_none()
         if entity is None:
             logger.debug(f"{self._model.__name__} with id {id} not found")
@@ -83,4 +86,4 @@ class SQLAlchemyRepository(Generic[T]):
             await self._session.commit()
             logger.debug(f"Deleted {self._model.__name__} with id {id}")
         else:
-            logger.warning(f"{self._model.__name__} with id {id} not found for deletion") 
+            logger.warning(f"{self._model.__name__} with id {id} not found for deletion")

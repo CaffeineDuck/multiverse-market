@@ -15,16 +15,14 @@ LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "standard": {
-            "format": LOG_FORMAT
-        },
+        "standard": {"format": LOG_FORMAT},
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "level": LOG_LEVEL,
             "formatter": "standard",
-            "stream": sys.stdout
+            "stream": sys.stdout,
         },
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
@@ -32,23 +30,24 @@ LOGGING_CONFIG = {
             "formatter": "standard",
             "filename": os.path.join(LOG_DIR, "multiverse_market.log"),
             "maxBytes": 10485760,  # 10MB
-            "backupCount": 5
-        }
+            "backupCount": 5,
+        },
     },
     "loggers": {
         "": {  # Root logger
             "handlers": ["console", "file"],
             "level": LOG_LEVEL,
-            "propagate": True
+            "propagate": True,
         },
         "multiverse_market": {
             "handlers": ["console", "file"],
             "level": LOG_LEVEL,
-            "propagate": False
-        }
-    }
+            "propagate": False,
+        },
+    },
 }
+
 
 def setup_logging():
     """Initialize logging configuration"""
-    logging.config.dictConfig(LOGGING_CONFIG) 
+    logging.config.dictConfig(LOGGING_CONFIG)
