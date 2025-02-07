@@ -42,9 +42,38 @@ packages = ["src/multiverse_market"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py38"
-select = ["E", "F", "B", "I", "N", "UP", "ANN", "RUF"]
-ignore = ["ANN101", "ANN102"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "B",   # flake8-bugbear
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "ANN", # flake8-annotations
+    "RUF", # ruff-specific rules
+    "D",   # pydocstyle
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "ERA", # eradicate
+]
+ignore = [
+    "ANN101",  # Missing type annotation for self
+    "ANN102",  # Missing type annotation for cls
+    "D100",    # Missing docstring in public module
+    "D104",    # Missing docstring in public package
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["multiverse_market"]
+combine-as-imports = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
