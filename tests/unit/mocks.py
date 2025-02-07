@@ -4,6 +4,7 @@ from datetime import datetime
 from multiverse_market.repositories import (
     UserRepository, ItemRepository, UniverseRepository, TransactionRepository
 )
+from multiverse_market.interfaces import CacheBackend
 from multiverse_market.models.entities import User, Item, Universe, Transaction
 from multiverse_market.exceptions import (
     UserNotFoundException, ItemNotFoundException, UniverseNotFoundException
@@ -15,6 +16,22 @@ class MockSession:
 
     async def rollback(self) -> None:
         pass
+
+class InMemoryCacheService(CacheBackend):
+    def __init__(self):
+        self._cache: Dict[str, str] = {}
+        self._expiry: Dict[str, float] = {}
+
+    async def get(self, key: str) -> Optional[str]:
+        return self._cache.get(key)
+
+    async def setex(self, key: str, expires: int, value: str) -> None:
+        self._cache[key] = value
+        self._expiry[key] = expires
+
+    async def delete(self, key: str) -> None:
+        self._cache.pop(key, None)
+        self._expiry.pop(key, None)
 
 class MockUserRepository(UserRepository):
     def __init__(self):

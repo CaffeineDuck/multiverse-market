@@ -13,24 +13,9 @@ from multiverse_market.exceptions import (
     InsufficientBalanceException, InsufficientStockException
 )
 from tests.unit.mocks import (
-    MockUserRepository, MockItemRepository, MockUniverseRepository, MockTransactionRepository
+    MockUserRepository, MockItemRepository, MockUniverseRepository, MockTransactionRepository,
+    InMemoryCacheService
 )
-
-class InMemoryCacheService(CacheBackend):
-    def __init__(self):
-        self._cache: Dict[str, str] = {}
-        self._expiry: Dict[str, float] = {}
-
-    async def get(self, key: str) -> Optional[str]:
-        return self._cache.get(key)
-
-    async def setex(self, key: str, expires: int, value: str) -> None:
-        self._cache[key] = value
-        self._expiry[key] = expires
-
-    async def delete(self, key: str) -> None:
-        self._cache.pop(key, None)
-        self._expiry.pop(key, None)
 
 @pytest_asyncio.fixture
 async def cache_backend() -> CacheBackend:
