@@ -1,5 +1,6 @@
 from logging.config import fileConfig
 import asyncio
+import logging
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
@@ -9,6 +10,8 @@ from alembic import context
 
 from multiverse_market.models import Base
 from multiverse_market.config import settings
+
+logger = logging.getLogger(__name__)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -40,6 +43,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
+    logger.info("Running migrations in 'offline' mode")
     url = settings.DATABASE_URL
     context.configure(
         url=url,
@@ -49,7 +53,9 @@ def run_migrations_offline() -> None:
     )
 
     with context.begin_transaction():
+        logger.debug("Executing offline migrations")
         context.run_migrations()
+        logger.info("Offline migrations completed")
 
 
 def do_run_migrations(connection: Connection) -> None:

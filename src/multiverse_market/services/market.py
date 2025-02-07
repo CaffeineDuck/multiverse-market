@@ -3,6 +3,7 @@ import json
 from datetime import datetime, UTC
 import typing as ty
 from contextlib import asynccontextmanager
+import logging
 
 from ..interfaces import CacheBackend, MarketBackend
 from ..repositories import UserRepository, ItemRepository, TransactionRepository, UniverseRepository
@@ -14,6 +15,8 @@ from ..exceptions import (
     UserNotFoundException, ItemNotFoundException, UniverseNotFoundException,
     InsufficientBalanceException, InsufficientStockException
 )
+
+logger = logging.getLogger(__name__)
 
 class ItemCache(ty.TypedDict):
     id: int
@@ -29,6 +32,7 @@ class MarketService(MarketBackend):
         universe_repo: UniverseRepository,
         cache: CacheBackend
     ):
+        logger.debug("Initializing MarketService")
         self._users = user_repo
         self._items = item_repo
         self._transactions = transaction_repo
@@ -84,6 +88,8 @@ class MarketService(MarketBackend):
         return rate
 
     async def exchange_currency(self, exchange: CurrencyExchange) -> CurrencyExchangeResponse:
+        logger.info(f"Processing currency exchange for user {exchange.user_id}")
+        logger.debug(f"Exchange details: {exchange.amount} from universe {exchange.from_universe_id} to {exchange.to_universe_id}")
         async with self._transaction():
             user = await self._users.get(exchange.user_id)
             if not user or not isinstance(user, User):
@@ -111,6 +117,8 @@ class MarketService(MarketBackend):
             )
 
     async def buy_item(self, purchase: ItemPurchase) -> TransactionSchema:
+        logger.info(f"Processing item purchase for user {purchase.buyer_id}")
+        logger.debug(f"Purchase details: {purchase.quantity} of item {purchase.item_id}")
         async with self._transaction():
             cache_key = f"item:{purchase.item_id}"
             cached_item = await self._cache.get(cache_key)

@@ -44,3 +44,8 @@ htmlcov/
 # Project specific
 env/.env
 *.log
+
+# Logs
+logs/
+*.log
+*.log.*

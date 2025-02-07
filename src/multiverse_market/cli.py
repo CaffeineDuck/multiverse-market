@@ -3,9 +3,12 @@ import asyncio
 import typer
 from typing import Optional
 from pathlib import Path
+import logging
 
 from .scripts.seed_data import seed_data
 from .dependencies import async_session
+
+logger = logging.getLogger(__name__)
 
 app = typer.Typer()
 
@@ -16,9 +19,13 @@ def seed(
 ) -> None:
     """Seed the database with test data."""
     async def _seed() -> None:
+        logger.info(f"Starting database seeding for {environment} environment")
+        if data_file:
+            logger.debug(f"Using custom seed data from {data_file}")
+        
         async with async_session() as session:
             await seed_data(session)
-            typer.echo(f"Successfully seeded {environment} database")
+            logger.info(f"Successfully seeded {environment} database")
 
     asyncio.run(_seed())
 

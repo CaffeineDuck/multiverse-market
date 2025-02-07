@@ -3,6 +3,12 @@ from fastapi.responses import JSONResponse
 from .api import router
 from .config import settings
 from .exceptions import MultiverseMarketException
+from .logging_config import setup_logging
+import logging
+
+# Initialize logging
+setup_logging()
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -14,6 +20,7 @@ app = FastAPI(
 @app.exception_handler(MultiverseMarketException)
 async def market_exception_handler(request: Request, exc: MultiverseMarketException):
     """Handle market-specific exceptions."""
+    logger.info(f"Handling market exception: {exc.detail}")
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail}

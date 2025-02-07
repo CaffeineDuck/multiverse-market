@@ -10,6 +10,9 @@ from .repositories import (
     UserRepository, ItemRepository,
     TransactionRepository, UniverseRepository
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Database setup
 engine = create_async_engine(
@@ -36,27 +39,31 @@ redis_pool = ConnectionPool.from_url(
 redis = Redis(connection_pool=redis_pool)
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """Get database session."""
+    logger.debug("Creating new database session")
     async with async_session() as session:
         try:
             yield session
         finally:
+            logger.debug("Closing database session")
             await session.close()
 
 async def get_redis() -> AsyncGenerator[Redis, None]:
-    """Get Redis connection with basic retry logic."""
-    for attempt in range(3):  # Try 3 times
+    logger.debug("Attempting Redis connection")
+    for attempt in range(3):
         try:
             await redis.ping()
+            logger.debug("Redis connection successful")
             try:
                 yield redis
             finally:
+                logger.debug("Closing Redis connection")
                 await redis.close()
             return
         except Exception as e:
-            if attempt == 2:  # Last attempt
-                raise  # Re-raise the exception if all retries failed
-            await asyncio.sleep(0.1 * (attempt + 1))  # Exponential backoff
+            logger.warning(f"Redis connection attempt {attempt + 1} failed: {str(e)}")
+            if attempt == 2:
+                raise
+            await asyncio.sleep(0.1 * (attempt + 1))
 
 async def get_cache_backend(redis: Redis = Depends(get_redis)) -> CacheBackend:
     """Get cache backend."""
