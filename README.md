@@ -4,49 +4,47 @@ A marketplace system for trading across multiple parallel universes.
 
 ## Quick Start
 
-1. Clone the repository
-
-2. Set up environment:
+### Setup
 ```bash
-cp env/.env.template env/.env
-# Edit env/.env with your configuration
+cp env/.env.template env/.env  # Configure environment
+make docker/up                 # Start services
+make docker/migrate           # Run database migrations
+make docker/seed             # Seed initial data
 ```
 
-3. Start the application:
+### Access the API
+- http://localhost:8000/api/v1/
+- http://localhost:8000/docs (Swagger UI)
+- http://localhost:8000/redoc (ReDoc)
+
+
+## Testing Commands
+
 ```bash
-make docker/build  # Build containers
-make docker/up     # Start containers
-make docker/migrate  # Run migrations
-make docker/seed     # Seed data
+# Integration Tests
+docker/test/integration       # Run integration tests
+docker/test/integration/watch # Run integration tests in watch mode
+docker/test/integration/logs  # View integration test logs
+
+# Load Tests
+docker/loadtest              # Start load testing environment
+docker/loadtest/logs         # View load test logs
+docker/loadtest/stop         # Stop load testing environment
 ```
 
-## Available Commands
+## Features
 
-```
-Usage:
-  make [target]
+- Cross-universe currency exchange and item trading
+- Transaction history tracking
+- Redis caching for performance
+- PostgreSQL for persistent storage
 
-Targets:
-  docker/build         Build or rebuild services
-  docker/clean-volumes Remove all volumes (WARNING: destroys data)
-  docker/down          Stop and remove containers (preserves volumes)
-  docker/logs          View output from containers
-  docker/migrate       Run database migrations in Docker
-  docker/restart       Restart all containers (preserves volumes)
-  docker/seed          Seed the database in Docker
-  docker/shell         Open a shell in the app container
-  docker/test          Run tests in Docker
-  docker/up            Create and start containers
-  help                 Show this help message
-  migrate              Run database migrations locally
-  seed                 Seed the database locally
-  test                 Run tests locally
-```
+## Database Schema
 
-## API Documentation
-
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+- **Universes**: Universe details (name, currency, exchange rate)
+- **Users**: User data (username, universe, balance)
+- **Items**: Available items for trade
+- **Transactions**: Transaction history
 
 ## Database Migrations
 
@@ -60,21 +58,6 @@ Apply/rollback:
 make docker/migrate  # Apply migrations
 docker compose exec app alembic downgrade -1  # Rollback one
 ```
-
-## Features
-
-- Currency exchange between different universes
-- Cross-universe item trading
-- Transaction history tracking
-- Redis caching for improved performance
-- PostgreSQL database for persistent storage
-
-## Database Schema
-
-- **Universes**: Store details about each universe (name, currency type, exchange rate)
-- **Users**: Store user data (username, current universe, balance)
-- **Items**: Store details about items available for trade
-- **Transactions**: Store transaction history
 
 ## Scalability
 
