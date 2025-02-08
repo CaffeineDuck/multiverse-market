@@ -10,8 +10,14 @@ import pytest_asyncio
 from httpx import AsyncClient
 from redis.asyncio import Redis
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine
+)
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import Session
 
 from multiverse_market.config import Settings
 from multiverse_market.dependencies import get_db, get_redis
@@ -26,7 +32,7 @@ settings = Settings()
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 @pytest_asyncio.fixture(scope="session")
-async def create_test_db():
+async def create_test_db() -> AsyncGenerator[AsyncEngine, None]:
     """Create test database."""
     engine = create_async_engine(
         TEST_DATABASE_URL,
@@ -42,10 +48,13 @@ async def create_test_db():
 TEST_REDIS_URL = settings.redis_url.replace("db=0", "db=1")
 
 @pytest_asyncio.fixture(scope="function")
-async def test_db(create_test_db) -> AsyncGenerator[AsyncSession, None]:
+async def test_db(create_test_db: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
     """Create a fresh database session for each test."""
     # Create session factory using the engine from create_test_db
-    async_session = sessionmaker(create_test_db, class_=AsyncSession, expire_on_commit=False)
+    async_session = async_sessionmaker(
+        create_test_db,
+        expire_on_commit=False
+    )
     
     async with async_session() as session:
         try:
