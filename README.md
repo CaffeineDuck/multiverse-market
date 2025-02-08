@@ -2,6 +2,15 @@
 
 A marketplace system for trading across multiple parallel universes.
 
+> **Note**: This project is intentionally over-engineered as it was created as a technical assignment to demonstrate advanced patterns and practices. While it may be excessive for a simple marketplace, it serves as a reference implementation showcasing:
+> - Clean architecture with proper separation of concerns
+> - Integration, unit, and load testing setups
+> - Async database and caching patterns
+> - Type safety and modern Python practices
+> - Docker-based development workflow
+>
+> For simpler applications, consider a more straightforward approach. However, this codebase can be a valuable reference for scaling FastAPI applications with production-grade practices.
+
 ## Quick Start
 
 ### Setup
