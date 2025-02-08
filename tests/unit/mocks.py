@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Sequence
 from datetime import datetime
 from decimal import Decimal
@@ -15,6 +16,8 @@ from multiverse_market.repositories import (
     UniverseRepository,
     UserRepository,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class MockSession:
@@ -68,11 +71,16 @@ class MockItemRepository(ItemRepository):
         return self._items.get(id)
 
     async def list(self, **filters) -> Sequence[Item]:
-        if "universe_id" in filters:
-            return [
+        logger.debug(f"MockItemRepository.list called with filters: {filters}")
+        logger.debug(f"Current items: {self._items}")
+        if "universe_id" in filters and filters["universe_id"] is not None:
+            result = [
                 item for item in self._items.values() if item.universe_id == filters["universe_id"]
             ]
-        return list(self._items.values())
+        else:
+            result = list(self._items.values())
+        logger.debug(f"Returning items: {result}")
+        return result
 
     async def update_stock(self, item_id: int, new_stock: int) -> None:
         item = await self.get(item_id)

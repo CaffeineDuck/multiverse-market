@@ -1,5 +1,6 @@
 import logging
 import pytest
+import pytest_asyncio
 
 from multiverse_market.exceptions import (
     InsufficientBalanceException,
@@ -22,21 +23,25 @@ from tests.unit.mocks import (
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture
-def market_service(
+@pytest_asyncio.fixture
+async def market_service(
     cache_backend: CacheBackend,
     user_repo: MockUserRepository,
     item_repo: MockItemRepository,
     universe_repo: MockUniverseRepository,
     transaction_repo: MockTransactionRepository,
+    setup_test_data: None,
 ) -> MarketService:
-    return MarketService(
+    logger.debug("Creating market service with repositories")
+    service = MarketService(
         user_repo=user_repo,
         item_repo=item_repo,
         transaction_repo=transaction_repo,
         universe_repo=universe_repo,
         cache=cache_backend,
     )
+    logger.debug(f"Created market service with item_repo: {item_repo._items}")
+    return service
 
 
 @pytest.mark.asyncio
@@ -255,15 +260,108 @@ class TestMarketService:
         assert result1.converted_amount == result2.converted_amount
 
     @pytest.mark.cache
-    async def test_item_cache_invalidation(
+    async def test_exchange_rate_cache_invalidation(
         self, market_service: MarketService, cache_backend: CacheBackend, setup_test_data: None
     ) -> None:
-        """Test that item cache is invalidated after purchase."""
-        purchase = ItemPurchase(buyer_id=1, item_id=1, quantity=1)
+        """Test that exchange rate caches are properly invalidated."""
+        # First, make an exchange to cache the rate
+        exchange = CurrencyExchange(user_id=1, amount=100.0, from_universe_id=1, to_universe_id=2)
+        await market_service.exchange_currency(exchange)
 
-        # Make a purchase which should cache the item
+        # Verify rate is cached
+        cache_key = "exchange_rate:1:2"
+        assert await cache_backend.get(cache_key) is not None
+
+        # Invalidate cache for universe 1
+        await market_service._invalidate_exchange_rate_cache(1)
+
+        # Verify cache is cleared
+        assert await cache_backend.get(cache_key) is None
+        assert await cache_backend.get("exchange_rate:2:1") is None
+
+    @pytest.mark.item
+    async def test_list_items_without_universe_filter(
+        self,
+        market_service: MarketService,
+        item_repo: MockItemRepository,
+        setup_test_data: None,
+    ) -> None:
+        """Test listing all items without universe filter."""
+        logger.debug("Starting test_list_items_without_universe_filter")
+        logger.debug(f"Initial items in repo: {item_repo._items}")
+
+        # Get initial items (should be one from setup_test_data)
+        initial_items = await market_service.list_items()
+        logger.debug(f"Initial items from list_items: {initial_items}")
+        assert len(initial_items) == 1
+        assert initial_items[0].name == "Test Item"
+        assert initial_items[0].universe_id == 1
+
+        # Add item from Mars (universe_id=2)
+        mars_item = Item(
+            id=2,  # Use id=2 since id=1 is already used in setup_test_data
+            name="Mars Item",
+            universe_id=2,
+            price=200.0,
+            stock=5,
+        )
+        item_repo._items[2] = mars_item
+        logger.debug(f"Added Mars item, current items: {item_repo._items}")
+
+        # Get all items
+        result = await market_service.list_items()
+        logger.debug(f"Final items from list_items: {result}")
+
+        # Verify all items are returned
+        assert len(result) == 2
+        assert {item.universe_id for item in result} == {1, 2}
+        assert {item.name for item in result} == {"Test Item", "Mars Item"}
+
+    @pytest.mark.cache
+    async def test_item_cache_validation(
+        self,
+        market_service: MarketService,
+        item_repo: MockItemRepository,
+        cache_backend: CacheBackend,
+        setup_test_data: None,
+    ) -> None:
+        """Test that item cache is validated and updated when item details change."""
+        # Make a purchase to cache the item
+        purchase = ItemPurchase(buyer_id=1, item_id=1, quantity=1)
         await market_service.buy_item(purchase)
 
-        # Verify that the cache was invalidated
-        cached_item = await cache_backend.get("item:1")
-        assert cached_item is None
+        # Manually modify the item in the repository
+        item = item_repo._items[1]
+        item.price = 150.0  # Change price
+        item_repo._items[1] = item
+
+        # Make another purchase - should detect cache mismatch and update
+        purchase = ItemPurchase(buyer_id=1, item_id=1, quantity=1)
+        result = await market_service.buy_item(purchase)
+
+        # Verify the new price was used
+        assert result.amount == 150.0
+
+    @pytest.mark.transaction
+    async def test_get_user_trades(
+        self,
+        market_service: MarketService,
+        transaction_repo: MockTransactionRepository,
+        setup_test_data: None,
+    ) -> None:
+        """Test retrieving user trade history."""
+        # Make multiple purchases
+        purchase1 = ItemPurchase(buyer_id=1, item_id=1, quantity=1)
+        purchase2 = ItemPurchase(buyer_id=1, item_id=1, quantity=2)
+
+        await market_service.buy_item(purchase1)
+        await market_service.buy_item(purchase2)
+
+        # Get trade history
+        trades = await market_service.get_user_trades(1)
+
+        # Verify all trades are returned
+        assert len(trades) == 2
+        assert trades[0].quantity == 1
+        assert trades[1].quantity == 2
+        assert all(trade.buyer_id == 1 for trade in trades)

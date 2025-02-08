@@ -1,16 +1,19 @@
 import asyncio
 import logging
+import os
 from collections.abc import AsyncGenerator
+from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends
 from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from .config import settings
+from .config import Settings
+from .infrastructure import RedisCache
 from .interfaces import CacheBackend, MarketBackend
 from .repositories import ItemRepository, TransactionRepository, UniverseRepository, UserRepository
-from .services import MarketService, RedisCache
+from .services import MarketService
 
 logger = logging.getLogger(__name__)
 

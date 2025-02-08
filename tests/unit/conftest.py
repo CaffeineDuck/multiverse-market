@@ -1,3 +1,4 @@
+import logging
 import pytest_asyncio
 
 from multiverse_market.interfaces import CacheBackend
@@ -10,6 +11,7 @@ from tests.unit.mocks import (
     MockUserRepository,
 )
 
+logger = logging.getLogger(__name__)
 
 @pytest_asyncio.fixture
 async def cache_backend() -> CacheBackend:
@@ -42,6 +44,7 @@ async def setup_test_data(
     item_repo: MockItemRepository,
     universe_repo: MockUniverseRepository,
 ) -> None:
+    logger.debug("Setting up test data...")
     earth = Universe(id=1, name="Earth", currency_type="USD", exchange_rate=1.0)
     mars = Universe(id=2, name="Mars", currency_type="MRC", exchange_rate=2.5)
     universe_repo._universes[1] = earth
@@ -52,5 +55,6 @@ async def setup_test_data(
 
     item = Item(id=1, name="Test Item", universe_id=1, price=100.0, stock=10)
     item_repo._items[1] = item
+    logger.debug(f"Added test item: {item}")
 
     return None
