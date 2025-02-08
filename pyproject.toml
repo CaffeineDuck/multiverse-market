@@ -44,6 +44,7 @@ packages = ["src/multiverse_market"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = ["migrations/**"]
 
 [tool.ruff.lint]
 select = [
