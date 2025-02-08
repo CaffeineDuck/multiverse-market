@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -43,4 +43,7 @@ class Transaction(Base):
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     from_universe_id: Mapped[int] = mapped_column(ForeignKey("universes.id"), nullable=False)
     to_universe_id: Mapped[int] = mapped_column(ForeignKey("universes.id"), nullable=False)
-    transaction_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    transaction_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        default=lambda: datetime.now(UTC)
+    )

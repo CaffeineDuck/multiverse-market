@@ -4,19 +4,19 @@ import logging
 from collections.abc import AsyncGenerator, Generator
 from typing import Any
 
-import pytest
 import httpx
+import pytest
+import pytest_asyncio
 from httpx import AsyncClient
 from redis.asyncio import Redis
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import text
-import pytest_asyncio
 
-from multiverse_market.main import app
 from multiverse_market.config import Settings
 from multiverse_market.dependencies import get_db, get_redis
-from multiverse_market.models.entities import Base, Universe, User, Item
+from multiverse_market.main import app
+from multiverse_market.models.entities import Base, Item, Universe, User
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,10 @@ async def test_app(test_db: AsyncSession, test_redis: Redis) -> AsyncGenerator[A
     app.dependency_overrides[get_db] = _override_get_db
     app.dependency_overrides[get_redis] = _override_get_redis
 
-    async with AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
         yield client
 
     app.dependency_overrides.clear()

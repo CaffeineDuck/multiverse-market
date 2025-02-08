@@ -4,13 +4,12 @@ import time
 import typing as ty
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import ClassVar, Union
+from typing import ClassVar, TypeAlias, Union
 
 from locust import HttpUser, LoadTestShape, between, events, stats, task
-from locust.clients import ResponseContextManager
+from locust.clients import LocustResponse, ResponseContextManager
 from locust.contrib.fasthttp import FastHttpUser
 from requests import Response
-from locust.clients import LocustResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,6 +22,8 @@ INITIAL_RETRY_WAIT: ty.Final[int] = 1
 
 stats.CSV_STATS_INTERVAL_SEC = STATS_INTERVAL_SEC
 stats.CSV_STATS_FLUSH_INTERVAL_SEC = STATS_FLUSH_INTERVAL_SEC
+
+type ResponseType = ResponseContextManager | Response | LocustResponse
 
 
 @dataclass
@@ -98,7 +99,11 @@ class BaseUser(HttpUser):
         super().__init__(*args, **kwargs)
         self.session = UserSession()
 
-    def handle_response(self, response: Union[ResponseContextManager, Response, LocustResponse], context: str) -> bool:
+    def handle_response(
+        self,
+        response: ResponseType,
+        context: str
+    ) -> bool:
         """
         Common response handling with error tracking.
 
@@ -226,7 +231,7 @@ class TraderUser(BaseUser):
     def exchange_currency(self) -> None:
         """Attempt to exchange currency between universes."""
 
-        def do_exchange() -> Union[ResponseContextManager, Response, LocustResponse, None]:
+        def do_exchange() -> ResponseType | None:
             user_id = random.choice(LoadTestConfig.USER_IDS)
 
             # Update balance before exchange
@@ -275,7 +280,7 @@ class TraderUser(BaseUser):
     def buy_item(self) -> None:
         """Attempt to purchase an item."""
 
-        def do_purchase() -> Union[ResponseContextManager, Response, LocustResponse, None]:
+        def do_purchase() -> ResponseType | None:
             buyer_id = random.choice(LoadTestConfig.USER_IDS)
 
             # Update user balance
