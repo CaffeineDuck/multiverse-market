@@ -221,7 +221,9 @@ class TraderUser(BaseUser):
         """Get user trade history."""
         user_id = random.choice(LoadTestConfig.USER_IDS)
         with self.client.get(
-            LoadTestConfig.TRADES.format(user_id=user_id), catch_response=True, name="Get User Trades"
+            LoadTestConfig.TRADES.format(user_id=user_id),
+            catch_response=True,
+            name="Get User Trades"
         ) as response:
             if self.handle_response(response, "get_user_trades"):
                 self.session.trade_history = response.json()

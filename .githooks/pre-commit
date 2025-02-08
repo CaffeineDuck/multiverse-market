@@ -1,6 +1,23 @@
 #!/bin/sh
-echo "Running unit tests before commit..."
+
+echo "Running code quality checks before commit..."
+
+echo "\nRunning ruff linting..."
+ruff check . || {
+    echo "Linting failed. Please fix the issues before committing."
+    exit 1
+}
+
+echo "\nRunning pyright type checking..."
+pyright . || {
+    echo "Type checking failed. Please fix the type errors before committing."
+    exit 1
+}
+
+echo "\nRunning unit tests..."
 pytest tests/unit -v || {
     echo "Unit tests failed. Please fix the tests before committing."
     exit 1
 }
+
+echo "\nAll checks passed successfully!"
