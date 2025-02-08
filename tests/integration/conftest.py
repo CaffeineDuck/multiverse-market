@@ -1,23 +1,17 @@
 """Integration test fixtures and configuration."""
-import asyncio
 import logging
-from collections.abc import AsyncGenerator, Generator
-from typing import Any
+from collections.abc import AsyncGenerator
 
 import httpx
-import pytest
 import pytest_asyncio
 from httpx import AsyncClient
 from redis.asyncio import Redis
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
-    create_async_engine
+    create_async_engine,
 )
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import Session
 
 from multiverse_market.config import Settings
 from multiverse_market.dependencies import get_db, get_redis

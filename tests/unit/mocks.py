@@ -1,11 +1,8 @@
 import logging
 from collections.abc import Sequence
-from datetime import datetime
-from decimal import Decimal
 
 from multiverse_market.exceptions import (
     ItemNotFoundException,
-    UniverseNotFoundException,
     UserNotFoundException,
 )
 from multiverse_market.interfaces import CacheBackend

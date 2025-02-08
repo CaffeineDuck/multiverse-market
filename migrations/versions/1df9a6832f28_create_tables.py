@@ -8,7 +8,6 @@ Create Date: 2024-03-19 01:46:15.123456
 
 from collections.abc import Sequence
 from datetime import datetime
-from typing import Union
 
 import sqlalchemy as sa
 from alembic import op

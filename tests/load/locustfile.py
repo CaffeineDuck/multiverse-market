@@ -4,11 +4,10 @@ import time
 import typing as ty
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import ClassVar, TypeAlias, Union
+from typing import ClassVar
 
 from locust import HttpUser, LoadTestShape, between, events, stats, task
 from locust.clients import LocustResponse, ResponseContextManager
-from locust.contrib.fasthttp import FastHttpUser
 from requests import Response
 
 logging.basicConfig(level=logging.INFO)

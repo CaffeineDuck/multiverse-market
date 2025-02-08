@@ -1,5 +1,4 @@
 import typing as ty
-from decimal import Decimal
 
 from .models import (
     CurrencyExchange,

@@ -1,10 +1,8 @@
 """Integration tests for the API endpoints."""
 import logging
-from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from multiverse_market.models.requests import CurrencyExchange, ItemPurchase
 
