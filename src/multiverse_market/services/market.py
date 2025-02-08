@@ -109,13 +109,14 @@ class MarketService(MarketBackend):
             user = await self._users.get(exchange.user_id)
             if not user or not isinstance(user, User):
                 raise UserNotFoundException()
-            # TODO: Handle exchange rate
-            if user.balance < exchange.amount:
-                raise InsufficientBalanceException()
 
             exchange_rate = await self._get_cached_exchange_rate(
                 exchange.from_universe_id, exchange.to_universe_id
             )
+
+            # Check balance after getting exchange rate
+            if user.balance < exchange.amount:
+                raise InsufficientBalanceException()
 
             converted_amount = Decimal(str(exchange.amount)) * exchange_rate
             new_balance = float(Decimal(str(user.balance)) - Decimal(str(exchange.amount)))
