@@ -198,6 +198,10 @@ class MarketService(MarketBackend):
 
     async def list_items(self, universe_id: int | None = None) -> ty.Sequence[ItemSchema]:
         logger.debug(f"Listing items with universe_id filter: {universe_id}")
+        if universe_id is not None:
+            universe = await self._universes.get(universe_id)
+            if not universe:
+                raise UniverseNotFoundException()
         items = await self._items.list(universe_id=universe_id)
         logger.debug(f"Raw items from repository: {items}")
         result = [ItemSchema.model_validate(item) for item in items if isinstance(item, Item)]
@@ -209,5 +213,9 @@ class MarketService(MarketBackend):
         return [UniverseSchema.model_validate(u) for u in universes if isinstance(u, Universe)]
 
     async def get_user_trades(self, user_id: int) -> ty.Sequence[TransactionSchema]:
-        transactions = await self._transactions.get_user_trades(user_id)
-        return [TransactionSchema.model_validate(tx) for tx in transactions]
+        """Get user's trade history."""
+        user = await self._users.get(user_id)
+        if not user or not isinstance(user, User):
+            raise UserNotFoundException()
+        trades = await self._transactions.get_user_trades(user_id)
+        return [TransactionSchema.model_validate(t) for t in trades if isinstance(t, Transaction)]

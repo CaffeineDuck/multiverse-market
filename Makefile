@@ -1,6 +1,6 @@
 .PHONY: help build up down restart logs ps test migrate seed shell clean docker/logs docker/build docker/up docker/down \
         docker/restart docker/test docker/migrate docker/seed docker/shell docker/clean-volumes docker/loadtest \
-        docker/loadtest/logs docker/loadtest/stop
+        docker/loadtest/logs docker/loadtest/stop docker/test/integration docker/test/integration/logs docker/test/integration/clean
 
 # Default target
 .DEFAULT_GOAL := help
@@ -61,3 +61,19 @@ docker/loadtest/logs: ## View load testing logs
 
 docker/loadtest/stop: ## Stop the load testing environment
 	$(DC) --profile test-load down
+
+# Integration testing commands
+docker/test/integration: docker/test/integration/clean ## Run integration tests in Docker
+	$(DC) --profile test up -d redis
+	$(DC) --profile test run --rm integration-test
+
+docker/test/integration/watch: docker/test/integration/clean ## Run integration tests in watch mode
+	$(DC) --profile test up -d redis
+	$(DC) --profile test run --rm integration-test pytest tests/integration -v --cov=src --cov-report=term-missing -f
+
+docker/test/integration/logs: ## View integration test logs
+	$(DC) --profile test logs -f integration-test
+
+docker/test/integration/clean: ## Clean up integration test environment
+	$(DC) --profile test down
+	$(DC) --profile test rm -f integration-test

@@ -53,7 +53,7 @@ async def buy_item(purchase: ItemPurchase, market: MarketDependency):
     return await market.buy_item(purchase)
 
 
-@router.get("/trades/{user_id}", response_model=list[TransactionSchema])
+@router.get("/users/{user_id}/trades", response_model=list[TransactionSchema])
 async def get_user_trades(user_id: int, market: MarketDependency):
     """Get all trades for a user."""
     return await market.get_user_trades(user_id)

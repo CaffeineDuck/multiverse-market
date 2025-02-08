@@ -106,6 +106,30 @@ services:
     deploy:
       replicas: 2
 
+  integration-test:
+    build:
+      context: .
+      dockerfile: tests/integration/Dockerfile
+    environment:
+      - APP__HOST=0.0.0.0
+      - APP__PORT=8000
+      - APP__DEBUG=true
+      - APP__LOG_LEVEL=debug
+      - APP__ENVIRONMENT=test
+      - REDIS__HOST=redis
+      - REDIS__PORT=6379
+      - REDIS__DB=1
+      - REDIS__PASSWORD=
+      - REDIS__SSL=false
+    volumes:
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles:
+      - test
+    command: pytest tests/integration -v --cov=src --cov-report=term-missing
+
 volumes:
   postgres_data:
   redis_data: 

@@ -17,6 +17,9 @@ from .services import MarketService
 
 logger = logging.getLogger(__name__)
 
+# Get settings instance
+settings = Settings()
+
 # Database setup
 engine = create_async_engine(
     settings.database_url,
