@@ -1,17 +1,17 @@
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
-from .dependencies import get_market_service
+from multiverse_market.models.responses import CurrencyExchangeResponse
+
+from .dependencies import MarketDependency
 from .models.requests import CurrencyExchange, ItemPurchase
 from .models.schemas import (
-    CurrencyExchangeResponse,
     ItemSchema,
     TransactionSchema,
     UniverseSchema,
     UserSchema,
 )
-from .services.market import MarketService
 
 logger = logging.getLogger(__name__)
 

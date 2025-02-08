@@ -1,3 +1,4 @@
+import logging
 import pytest
 
 from multiverse_market.exceptions import (
@@ -8,7 +9,7 @@ from multiverse_market.exceptions import (
     UserNotFoundException,
 )
 from multiverse_market.interfaces import CacheBackend
-from multiverse_market.models.entities import Item, Universe, User
+from multiverse_market.models.entities import Item
 from multiverse_market.models.requests import CurrencyExchange, ItemPurchase
 from multiverse_market.services.market import MarketService
 from tests.unit.mocks import (
@@ -17,6 +18,8 @@ from tests.unit.mocks import (
     MockUniverseRepository,
     MockUserRepository,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
@@ -57,6 +60,8 @@ class TestMarketService:
         assert result.converted_amount == 250.0  # 100 * (2.5/1.0)
         assert result.exchange_rate == 2.5
         user = await user_repo.get(1)
+        if user is None:
+            raise Exception("user not found")
         assert user.balance == 900.0  # 1000 - 100
 
     @pytest.mark.currency
@@ -117,9 +122,13 @@ class TestMarketService:
         assert result.amount == 200.0
 
         user = await user_repo.get(1)
+        if user is None:
+            raise Exception("user not found")
         assert user.balance == 800.0  # 1000 - (100 * 2)
 
         item = await item_repo.get(1)
+        if item is None:
+            raise Exception("item not found")
         assert item.stock == 8  # 10 - 2
 
     @pytest.mark.purchase

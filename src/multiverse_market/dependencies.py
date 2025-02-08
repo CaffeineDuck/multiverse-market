@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Database setup
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    settings.database_url,
     echo=settings.DB_ECHO,
     pool_size=settings.DB_POOL_SIZE,
     max_overflow=settings.DB_MAX_OVERFLOW,
@@ -26,7 +26,7 @@ async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit
 
 # Redis setup with connection pooling
 redis_pool = ConnectionPool.from_url(
-    settings.REDIS_URL, encoding="utf-8", decode_responses=True, max_connections=10
+    settings.redis_url, encoding="utf-8", decode_responses=True, max_connections=10
 )
 
 redis = Redis(connection_pool=redis_pool)

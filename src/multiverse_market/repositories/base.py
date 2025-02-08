@@ -1,18 +1,18 @@
 import logging
+import typing as ty
 from collections.abc import Sequence
-from typing import Generic, Optional, Protocol, TypeVar
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.entities import Base
-
-T = TypeVar("T")
+from multiverse_market.models.entities import Base
 
 logger = logging.getLogger(__name__)
 
+T = ty.TypeVar("T", bound=Base)
 
-class Repository(Protocol[T]):
+
+class Repository(ty.Protocol[T]):
     """Base repository protocol."""
 
     async def get(self, id: int) -> T | None:
@@ -36,7 +36,7 @@ class Repository(Protocol[T]):
         ...
 
 
-class SQLAlchemyRepository(Generic[T]):
+class SQLAlchemyRepository(ty.Generic[T]):
     """Base SQLAlchemy repository implementation."""
 
     def __init__(self, session: AsyncSession, model: type[T]):

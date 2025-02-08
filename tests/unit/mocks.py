@@ -32,7 +32,7 @@ class InMemoryCacheService(CacheBackend):
     async def get(self, key: str) -> str | None:
         return self._cache.get(key)
 
-    async def setex(self, key: str, ttl: int, value: str) -> None:
+    async def setex(self, key: str, expires: int, value: str) -> None:
         self._cache[key] = value
 
     async def delete(self, key: str) -> None:

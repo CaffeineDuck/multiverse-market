@@ -4,10 +4,13 @@ import time
 import typing as ty
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import ClassVar
+from typing import ClassVar, Union
 
 from locust import HttpUser, LoadTestShape, between, events, stats, task
 from locust.clients import ResponseContextManager
+from locust.contrib.fasthttp import FastHttpUser
+from requests import Response
+from locust.clients import LocustResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -43,7 +46,7 @@ class UserSession:
     successful_trades: int = 0
     failed_trades: int = 0
     trade_history: list[dict] = field(default_factory=list)
-    user_balances: list[int, float] = field(default_factory=dict)
+    user_balances: dict[int, float] = field(default_factory=dict)
     item_stocks: dict[int, ItemData] = field(default_factory=dict)
 
 
@@ -95,12 +98,12 @@ class BaseUser(HttpUser):
         super().__init__(*args, **kwargs)
         self.session = UserSession()
 
-    def handle_response(self, response: ResponseContextManager, context: str) -> bool:
+    def handle_response(self, response: Union[ResponseContextManager, Response, LocustResponse], context: str) -> bool:
         """
         Common response handling with error tracking.
 
         Args:
-            response: The response from the API
+            response: The response from the API (can be various response types)
             context: Description of the current operation
 
         Returns:
@@ -110,7 +113,8 @@ class BaseUser(HttpUser):
             self.session.errors += 1
             logger.error(f"Error in {context}: {response.status_code} - {response.text}")
 
-            response.failure(f"{context} failed: {response.status_code}")
+            if isinstance(response, ResponseContextManager):
+                response.failure(f"{context} failed: {response.status_code}")
 
             if self.session.errors >= MAX_ERRORS:
                 logger.error(f"User exceeded maximum errors ({MAX_ERRORS}), stopping")
@@ -118,10 +122,11 @@ class BaseUser(HttpUser):
             return False
 
         self.session.errors = max(0, self.session.errors - 1)
-        response.success()
+        if isinstance(response, ResponseContextManager):
+            response.success()
         return True
 
-    def retry_with_backoff[T](self, func: T) -> T:
+    def retry_with_backoff[T](self, func: ty.Callable[[], T]) -> T:
         """
         Enhanced retry mechanism with health checks and logging.
 
@@ -152,6 +157,8 @@ class BaseUser(HttpUser):
                 wait_time = INITIAL_RETRY_WAIT * (2**attempt)
                 logger.warning(f"Attempt {attempt + 1} failed, waiting {wait_time}s: {e!s}")
                 time.sleep(wait_time)
+        # Should be unreachable
+        raise Exception("max retries reached")
 
 
 class BrowserUser(BaseUser):
@@ -217,9 +224,9 @@ class TraderUser(BaseUser):
 
     @task(1)
     def exchange_currency(self) -> None:
-        """Execute currency exchange."""
+        """Attempt to exchange currency between universes."""
 
-        def do_exchange() -> ResponseContextManager | None:
+        def do_exchange() -> Union[ResponseContextManager, Response, LocustResponse, None]:
             user_id = random.choice(LoadTestConfig.USER_IDS)
 
             # Update balance before exchange
@@ -266,9 +273,9 @@ class TraderUser(BaseUser):
 
     @task(1)
     def buy_item(self) -> None:
-        """Execute item purchase."""
+        """Attempt to purchase an item."""
 
-        def do_purchase() -> ResponseContextManager | None:
+        def do_purchase() -> Union[ResponseContextManager, Response, LocustResponse, None]:
             buyer_id = random.choice(LoadTestConfig.USER_IDS)
 
             # Update user balance

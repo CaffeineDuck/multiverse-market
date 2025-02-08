@@ -21,7 +21,7 @@ app = FastAPI(
 
 
 @app.exception_handler(MultiverseMarketException)
-async def market_exception_handler(request: Request, exc: MultiverseMarketException):
+async def market_exception_handler(_: Request, exc: MultiverseMarketException):
     """Handle market-specific exceptions."""
     logger.info(f"Handling market exception: {exc.detail}")
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})

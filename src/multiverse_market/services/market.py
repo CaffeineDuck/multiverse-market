@@ -109,6 +109,7 @@ class MarketService(MarketBackend):
             user = await self._users.get(exchange.user_id)
             if not user or not isinstance(user, User):
                 raise UserNotFoundException()
+            # TODO: Handle exchange rate
             if user.balance < exchange.amount:
                 raise InsufficientBalanceException()
 
