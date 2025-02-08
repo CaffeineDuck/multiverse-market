@@ -1,3 +1,4 @@
+"""Redis cache implementation."""
 import logging
 
 from redis.asyncio import Redis
@@ -22,4 +23,4 @@ class RedisCache(CacheBackend):
 
     async def delete(self, key: str) -> None:
         logger.debug(f"Deleting cache key: {key}")
-        await self._redis.delete(key)
+        await self._redis.delete(key) 

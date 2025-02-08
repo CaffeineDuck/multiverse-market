@@ -197,8 +197,12 @@ class MarketService(MarketBackend):
         return UserSchema.model_validate(user)
 
     async def list_items(self, universe_id: int | None = None) -> ty.Sequence[ItemSchema]:
+        logger.debug(f"Listing items with universe_id filter: {universe_id}")
         items = await self._items.list(universe_id=universe_id)
-        return [ItemSchema.model_validate(item) for item in items if isinstance(item, Item)]
+        logger.debug(f"Raw items from repository: {items}")
+        result = [ItemSchema.model_validate(item) for item in items if isinstance(item, Item)]
+        logger.debug(f"Validated items: {result}")
+        return result
 
     async def list_universes(self) -> ty.Sequence[UniverseSchema]:
         universes = await self._universes.list()
