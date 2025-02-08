@@ -5,7 +5,8 @@ Revises: 1df9a6832f28
 Create Date: 2025-02-08 18:28:37.761516
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
 import sqlalchemy as sa
 from alembic import op
@@ -13,8 +14,8 @@ from alembic import op
 # revision identifiers, used by Alembic.
 revision: str = "51bddb579501"
 down_revision: str = "1df9a6832f28"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

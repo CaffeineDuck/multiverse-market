@@ -1,4 +1,5 @@
 import logging
+
 import pytest_asyncio
 
 from multiverse_market.interfaces import CacheBackend

@@ -1,6 +1,6 @@
 """Integration tests for the API endpoints."""
 import logging
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient
