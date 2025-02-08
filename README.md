@@ -21,6 +21,11 @@ make docker/migrate           # Run database migrations
 make docker/seed             # Seed initial data
 ```
 
+### Git Hooks Setup
+```bash
+./install-hooks.sh  # Install git hooks (runs unit tests before commits)
+```
+
 ### Access the API
 - http://localhost:8000/api/v1/
 - http://localhost:8000/docs (Swagger UI)

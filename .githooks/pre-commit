@@ -1,0 +1,6 @@
+#!/bin/sh
+echo "Running unit tests before commit..."
+pytest tests/unit -v || {
+    echo "Unit tests failed. Please fix the tests before committing."
+    exit 1
+}
